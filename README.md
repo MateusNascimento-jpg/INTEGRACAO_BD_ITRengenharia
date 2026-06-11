@@ -22,4 +22,6 @@ Sistema web para gerenciamento de amostras de laboratorio da **ITR Engenharia**,
 ---
 
 
+© ITR Engenharia — uso interno
+
 
