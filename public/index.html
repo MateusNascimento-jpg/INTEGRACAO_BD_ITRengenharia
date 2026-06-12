@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <title>ITR - Laboratorio</title>
+</head>
+<body>
+
+  <h2>ITR - Controle de Laboratorio</h2>
+
+  <!-- BOTOES DE NAVEGACAO ENTRE AS ABAS -->
+  <button onclick="mudarAba('amostras')">Amostras</button>
+  <button onclick="mudarAba('clientes')">Clientes</button>
+  <button onclick="mudarAba('ensaios')">Ensaios</button>
+
+  <hr>
+
+  <!-- ABA AMOSTRAS: VISIVEL POR PADRAO -->
+  <div id="aba-amostras">
+    <h3>Amostras</h3>
+    <input id="busca-amostras" type="text" placeholder="Buscar..." oninput="filtrar('amostras', this.value)" />
+    <button onclick="abrirFormulario('amostra')">+ Nova Amostra</button>
+    <br><br>
+    <table border="1" cellpadding="6">
+      <thead><tr><th>ID Amostra</th><th>Nome</th><th>Acoes</th></tr></thead>
+      <tbody id="tabela-amostras"><tr><td colspan="3">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- ABA CLIENTES: ESCONDIDA ATE O USUARIO CLICAR -->
+  <div id="aba-clientes" style="display:none">
+    <h3>Clientes</h3>
+    <input id="busca-clientes" type="text" placeholder="Buscar..." oninput="filtrar('clientes', this.value)" />
+    <button onclick="abrirFormulario('cliente')">+ Novo Cliente</button>
+    <br><br>
+    <table border="1" cellpadding="6">
+      <thead><tr><th>ID Cliente</th><th>Nome</th><th>Acoes</th></tr></thead>
+      <tbody id="tabela-clientes"><tr><td colspan="3">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- ABA ENSAIOS: ESCONDIDA ATE O USUARIO CLICAR -->
+  <div id="aba-ensaios" style="display:none">
+    <h3>Ensaios</h3>
+    <input id="busca-ensaios" type="text" placeholder="Buscar..." oninput="filtrar('ensaios', this.value)" />
+    <button onclick="abrirFormulario('ensaio')">+ Novo Ensaio</button>
+    <br><br>
+    <table border="1" cellpadding="6">
+      <thead><tr><th>ID Ensaio</th><th>Acoes</th></tr></thead>
+      <tbody id="tabela-ensaios"><tr><td colspan="2">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- SEPARADOR VISUAL ANTES DO FORMULARIO, ESCONDIDO ATE ABRIR UM FORM -->
+  <hr id="hr-form" style="display:none">
+
+  <!-- FORMULARIO DE AMOSTRA: USADO PARA CRIAR E EDITAR -->
+  <div id="form-amostra" style="display:none">
+    <h3 id="titulo-amostra">Nova Amostra</h3>
+
+    <label>ID Amostra*</label><br>
+    <input type="text" id="a-id" /><br><br>
+
+    <label>Nome Amostra</label><br>
+    <input type="text" id="a-nome" /><br><br>
+
+    <label>Quantidade</label><br>
+    <input type="number" id="a-qtd" /><br><br>
+
+    <label>Data de Chegada</label><br>
+    <input type="date" id="a-data" /><br><br>
+
+    <label>Observacoes</label><br>
+    <textarea id="a-obs" rows="3"></textarea><br><br>
+
+    <label>Barcode</label><br>
+    <input type="text" id="a-barcode" /><br><br>
+
+    <label>ID Externo</label><br>
+    <input type="text" id="a-idext" /><br><br>
+
+    <label>Ordem de Servico</label><br>
+    <input type="text" id="a-os" /><br><br>
+
+    <!-- CAMPO CLIENTE: BUSCA DINAMICA + SELECAO DO REGISTRO VINCULADO -->
+    <label>Cliente</label><br>
+    <input type="text" placeholder="Filtrar cliente..." oninput="filtrarSelectClientes(this.value)" /><br>
+    <select id="a-cliente" size="4"></select><br><br>
+
+    <!-- CAMPO ENSAIOS: MULTIPLA SELECAO DE REGISTROS VINCULADOS -->
+    <label>Ensaios</label><br>
+    <input type="text" placeholder="Filtrar ensaio..." oninput="filtrarSelectEnsaios(this.value)" /><br>
+    <select id="a-ensaios" multiple size="5"></select><br><br>
+
+    <!-- CAMPOS DE SELECAO MULTIPLA: OPCOES VEM DO SCHEMA DO AIRTABLE -->
+    <label>Unidade Quantidade</label><br>
+    <select id="a-unidade" multiple size="4"></select><br><br>
+
+    <label>Tipo de Amostra</label><br>
+    <select id="a-tipo" multiple size="4"></select><br><br>
+
+    <small>Segure Ctrl para multiplos</small><br><br>
+
+    <button onclick="salvarAmostra()">Salvar</button>
+    <button onclick="fecharFormulario()">Cancelar</button>
+    <p id="status-amostra"></p>
+  </div>
+
+  <!-- FORMULARIO DE CLIENTE -->
+  <div id="form-cliente" style="display:none">
+    <h3 id="titulo-cliente">Novo Cliente</h3>
+
+    <label>ID Cliente*</label><br>
+    <input type="text" id="c-id" /><br><br>
+
+    <label>Nome Cliente</label><br>
+    <input type="text" id="c-nome" /><br><br>
+
+    <button onclick="salvarCliente()">Salvar</button>
+    <button onclick="fecharFormulario()">Cancelar</button>
+    <p id="status-cliente"></p>
+  </div>
+
+  <!-- FORMULARIO DE ENSAIO -->
+  <div id="form-ensaio" style="display:none">
+    <h3 id="titulo-ensaio">Novo Ensaio</h3>
+
+    <label>ID Ensaio*</label><br>
+    <input type="text" id="e-id" /><br><br>
+
+    <button onclick="salvarEnsaio()">Salvar</button>
+    <button onclick="fecharFormulario()">Cancelar</button>
+    <p id="status-ensaio"></p>
+  </div>
+
+  <script>
+
+    //VARIAVEIS GLOBAIS: GUARDAM OS DADOS CARREGADOS DO SERVIDOR EM MEMORIA
+    let todasAmostras = [], todosClientes = [], todosEnsaios = [];
+    let editandoId = null, formAtivo = null;
+
+    //INICIALIZACAO: CARREGA TODOS OS DADOS AO ABRIR A PAGINA
+    async function init() {
+      await Promise.all([carregarAmostras(), carregarClientes(), carregarEnsaios(), carregarSchema()]);
+    }
+
+    //CARREGA O SCHEMA DO AIRTABLE: BUSCA AS OPCOES DOS CAMPOS DE SELECAO
+    async function carregarSchema() {
+      const schema = await fetch('/api/schema').then(r => r.json());
+      const am = schema['Amostras'] || {};
+      popularSelect('a-unidade', am['Unidade Quantidade'] || []);
+      popularSelect('a-tipo',    am['Tipo de Amostra']    || []);
+    }
+
+    //POPULA UM SELECT COM UMA LISTA DE OPCOES
+    function popularSelect(id, opcoes) {
+      const sel = document.getElementById(id);
+      sel.innerHTML = '';
+      opcoes.forEach(op => {
+        const o = document.createElement('option');
+        o.value = o.textContent = op;
+        sel.appendChild(o);
+      });
+    }
+
+    //ORDENA ALFABETICAMENTE PELO CAMPO INFORMADO
+    function ordenarAlfabetico(lista, campo) {
+      return lista.slice().sort(function(a, b) {
+        const va = (a[campo] || '').toLowerCase();
+        const vb = (b[campo] || '').toLowerCase();
+        return va.localeCompare(vb);
+      });
+    }
+
+    //ORDENA ENSAIOS AGRUPANDO POR PREFIXO (EX: MR, DP, CD) E ALFABETICAMENTE DENTRO DE CADA GRUPO
+    function ordenarEnsaios(lista) {
+      return lista.slice().sort(function(a, b) {
+        const na = (a.nome || '').toLowerCase();
+        const nb = (b.nome || '').toLowerCase();
+        const prefA = na.split('-')[0];
+        const prefB = nb.split('-')[0];
+        if (prefA !== prefB) return prefA.localeCompare(prefB);
+        return na.localeCompare(nb);
+      });
+    }
+
+    //CARREGA LISTA DE AMOSTRAS DO SERVIDOR, ORDENA ALFABETICAMENTE E RENDERIZA NA TABELA
+    async function carregarAmostras() {
+      const raw = await fetch('/api/amostras').then(r => r.json());
+      todasAmostras = ordenarAlfabetico(raw, 'idAmostra');
+      renderTabela('amostras', todasAmostras);
+    }
+
+    //CARREGA LISTA DE CLIENTES DO SERVIDOR, ORDENA ALFABETICAMENTE E RENDERIZA NA TABELA E NO SELECT DO FORM
+    async function carregarClientes() {
+      const raw = await fetch('/api/clientes').then(r => r.json());
+      todosClientes = ordenarAlfabetico(raw, 'idCliente');
+      renderTabela('clientes', todosClientes);
+      renderSelectClientes(todosClientes);
+    }
+
+    //CARREGA LISTA DE ENSAIOS DO SERVIDOR, AGRUPA POR PREFIXO E RENDERIZA NA TABELA E NO SELECT DO FORM
+    async function carregarEnsaios() {
+      const raw = await fetch('/api/ensaios').then(r => r.json());
+      todosEnsaios = ordenarEnsaios(raw);
+      renderTabela('ensaios', todosEnsaios);
+      renderSelectEnsaios(todosEnsaios);
+    }
+
+    //RENDERIZA UMA LISTA DE REGISTROS COMO LINHAS NA TABELA HTML
+    //CRIA OS BOTOES EDITAR E DELETAR DINAMICAMENTE VIA JAVASCRIPT
+    function renderTabela(tipo, lista) {
+      const tbody = document.getElementById('tabela-' + tipo);
+      tbody.innerHTML = '';
+      if (!lista.length) { tbody.innerHTML = '<tr><td colspan="3">Nenhum registro.</td></tr>'; return; }
+      lista.forEach(function(r) {
+        const tr = document.createElement('tr');
+
+        //MONTA AS COLUNAS DE DADOS CONFORME O TIPO DA TABELA
+        if (tipo === 'amostras') {
+          tr.innerHTML = '<td>' + (r.idAmostra||'-') + '</td><td>' + (r.nome||'-') + '</td><td></td>';
+        } else if (tipo === 'clientes') {
+          tr.innerHTML = '<td>' + (r.idCliente||'-') + '</td><td>' + (r.nome||'-') + '</td><td></td>';
+        } else if (tipo === 'ensaios') {
+          tr.innerHTML = '<td>' + (r.nome||'-') + '</td><td></td>';
+        }
+
+        //CRIA OS BOTOES E ASSOCIA AS FUNCOES DE EDITAR E DELETAR
+        const td = tr.querySelector('td:last-child');
+        const btnE = document.createElement('button');
+        const btnD = document.createElement('button');
+        btnE.textContent = 'Editar';
+        btnD.textContent = 'Deletar';
+        if (tipo === 'amostras') { btnE.onclick = function() { editarAmostra(r.id); }; btnD.onclick = function() { deletar('amostras', r.id); }; }
+        if (tipo === 'clientes') { btnE.onclick = function() { editarCliente(r.id); }; btnD.onclick = function() { deletar('clientes', r.id); }; }
+        if (tipo === 'ensaios')  { btnE.onclick = function() { editarEnsaio(r.id);  }; btnD.onclick = function() { deletar('ensaios',  r.id); }; }
+        td.appendChild(btnE);
+        td.appendChild(document.createTextNode(' '));
+        td.appendChild(btnD);
+        tbody.appendChild(tr);
+      });
+    }
+
+    //POPULA O SELECT DE CLIENTES NO FORMULARIO DE AMOSTRA
+    function renderSelectClientes(lista) {
+      const sel = document.getElementById('a-cliente');
+      const val = sel.value;
+      sel.innerHTML = '<option value="">-- selecione --</option>';
+      lista.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id; o.textContent = c.idCliente || c.nome;
+        sel.appendChild(o);
+      });
+      sel.value = val;
+    }
+
+    //POPULA O SELECT DE ENSAIOS NO FORMULARIO DE AMOSTRA, MANTENDO OS JA SELECIONADOS
+    function renderSelectEnsaios(lista) {
+      const sel = document.getElementById('a-ensaios');
+      const selecionados = Array.from(sel.selectedOptions).map(o => o.value);
+      sel.innerHTML = '';
+      lista.forEach(e => {
+        const o = document.createElement('option');
+        o.value = e.id; o.textContent = e.nome;
+        o.selected = selecionados.includes(e.id);
+        sel.appendChild(o);
+      });
+    }
+
+    //FILTRA A TABELA CONFORME O QUE O USUARIO DIGITOU NA BUSCA
+    //USA OS DADOS JA CARREGADOS EM MEMORIA, SEM NOVA CHAMADA AO SERVIDOR
+    function filtrar(tipo, termo) {
+      const t = termo.toLowerCase();
+      if (tipo === 'amostras') renderTabela('amostras', todasAmostras.filter(r => ((r.idAmostra||'')+(r.nome||'')).toLowerCase().includes(t)));
+      if (tipo === 'clientes') renderTabela('clientes', todosClientes.filter(r => ((r.idCliente||'')+(r.nome||'')).toLowerCase().includes(t)));
+      if (tipo === 'ensaios')  renderTabela('ensaios',  todosEnsaios.filter(r => (r.nome||'').toLowerCase().includes(t)));
+    }
+
+    //FILTRA O SELECT DE CLIENTES DENTRO DO FORMULARIO DE AMOSTRA
+    function filtrarSelectClientes(termo) {
+      renderSelectClientes(todosClientes.filter(c => ((c.idCliente||'')+(c.nome||'')).toLowerCase().includes(termo.toLowerCase())));
+    }
+
+    //FILTRA O SELECT DE ENSAIOS DENTRO DO FORMULARIO DE AMOSTRA
+    function filtrarSelectEnsaios(termo) {
+      renderSelectEnsaios(todosEnsaios.filter(e => (e.nome||'').toLowerCase().includes(termo.toLowerCase())));
+    }
+
+    //TROCA A ABA VISIVEL E FECHA QUALQUER FORMULARIO ABERTO
+    function mudarAba(aba) {
+      ['amostras','clientes','ensaios'].forEach(a => {
+        document.getElementById('aba-' + a).style.display = a === aba ? 'block' : 'none';
+      });
+      fecharFormulario();
+    }
+
+    //ABRE O FORMULARIO PARA NOVO REGISTRO: LIMPA OS CAMPOS E ROLA A TELA
+    function abrirFormulario(tipo) {
+      fecharFormulario();
+      editandoId = null;
+      formAtivo  = tipo;
+      limparForm(tipo);
+      document.getElementById('titulo-' + tipo).textContent = tipo === 'amostra' ? 'Nova Amostra' : tipo === 'cliente' ? 'Novo Cliente' : 'Novo Ensaio';
+      document.getElementById('form-' + tipo).style.display = 'block';
+      document.getElementById('hr-form').style.display = 'block';
+      document.getElementById('form-' + tipo).scrollIntoView({ behavior: 'smooth' });
+    }
+
+    //FECHA E ESCONDE TODOS OS FORMULARIOS
+    function fecharFormulario() {
+      ['amostra','cliente','ensaio'].forEach(t => {
+        document.getElementById('form-' + t).style.display = 'none';
+      });
+      document.getElementById('hr-form').style.display = 'none';
+      editandoId = null; formAtivo = null;
+    }
+
+    //LIMPA TODOS OS CAMPOS DO FORMULARIO ESPECIFICADO
+    function limparForm(tipo) {
+      document.querySelectorAll('#form-' + tipo + ' input, #form-' + tipo + ' textarea').forEach(el => el.value = '');
+      document.querySelectorAll('#form-' + tipo + ' select').forEach(el => Array.from(el.options).forEach(o => o.selected = false));
+      document.getElementById('status-' + tipo).textContent = '';
+    }
+
+    //BUSCA OS DADOS DE UMA AMOSTRA EXISTENTE E PREENCHE O FORMULARIO PARA EDICAO
+    async function editarAmostra(id) {
+      editandoId = id;
+      const data = await fetch('/api/amostras/' + id).then(r => r.json());
+      const f = data.fields;
+
+      //PREENCHE CADA CAMPO COM O VALOR QUE VEM DO AIRTABLE
+      document.getElementById('a-id').value      = f['ID Amostra']       || '';
+      document.getElementById('a-nome').value    = f['Nome Amostra']     || '';
+      document.getElementById('a-qtd').value     = f['Quantidade']       || '';
+      document.getElementById('a-data').value    = f['Data de Chegada']  || '';
+      document.getElementById('a-obs').value     = f['Observacoes']      || '';
+      document.getElementById('a-barcode').value = f['Barcode']          || '';
+      document.getElementById('a-idext').value   = f['ID Externo']       || '';
+      document.getElementById('a-os').value      = f['Ordem de Servico'] || '';
+
+      //CLIENTE E UM LINKED RECORD: VEM COMO ARRAY, PEGA O PRIMEIRO
+      document.getElementById('a-cliente').value = f['Cliente']?.[0] || '';
+
+      //MARCA OS ENSAIOS JA VINCULADOS COMO SELECIONADOS
+      const ensIds = f['Ensaios'] || [];
+      Array.from(document.getElementById('a-ensaios').options).forEach(o => o.selected = ensIds.includes(o.value));
+
+      //MARCA AS UNIDADES E TIPOS JA SELECIONADOS
+      const unids = f['Unidade Quantidade'] || [];
+      Array.from(document.getElementById('a-unidade').options).forEach(o => o.selected = unids.includes(o.value));
+      const tipos = f['Tipo de Amostra'] || [];
+      Array.from(document.getElementById('a-tipo').options).forEach(o => o.selected = tipos.includes(o.value));
+
+      document.getElementById('titulo-amostra').textContent = 'Editar Amostra';
+      document.getElementById('form-amostra').style.display = 'block';
+      document.getElementById('hr-form').style.display = 'block';
+      document.getElementById('form-amostra').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    //SALVA UMA AMOSTRA: USA POST PARA NOVA OU PATCH PARA EDITAR EXISTENTE
+    async function salvarAmostra() {
+      const idAmostra = document.getElementById('a-id').value.trim();
+      if (!idAmostra) { document.getElementById('status-amostra').textContent = 'ID Amostra e obrigatorio.'; return; }
+
+      //MONTA O OBJETO FIELDS APENAS COM OS CAMPOS QUE FORAM PREENCHIDOS
+      const fields = { 'ID Amostra': idAmostra };
+      const nome = document.getElementById('a-nome').value.trim();    if (nome)   fields['Nome Amostra']     = nome;
+      const qtd  = document.getElementById('a-qtd').value;            if (qtd)    fields['Quantidade']        = parseFloat(qtd);
+      const data = document.getElementById('a-data').value;           if (data)   fields['Data de Chegada']   = data;
+      const obs  = document.getElementById('a-obs').value.trim();     if (obs)    fields['Observacoes']       = obs;
+      const bc   = document.getElementById('a-barcode').value.trim(); if (bc)     fields['Barcode']           = bc;
+      const ie   = document.getElementById('a-idext').value.trim();   if (ie)     fields['ID Externo']        = ie;
+      const os   = document.getElementById('a-os').value.trim();      if (os)     fields['Ordem de Servico']  = os;
+
+      //CLIENTE E ENSAIOS SAO LINKED RECORDS: PRECISAM SER ENVIADOS COMO ARRAY DE IDS
+      const cli  = document.getElementById('a-cliente').value; if (cli) fields['Cliente'] = [cli];
+      const ens  = Array.from(document.getElementById('a-ensaios').selectedOptions).map(o => o.value); if (ens.length) fields['Ensaios'] = ens;
+      const uni  = Array.from(document.getElementById('a-unidade').selectedOptions).map(o => o.value); if (uni.length) fields['Unidade Quantidade'] = uni;
+      const tip  = Array.from(document.getElementById('a-tipo').selectedOptions).map(o => o.value);    if (tip.length) fields['Tipo de Amostra'] = tip;
+
+      //SE EDITANDO USA PATCH (ATUALIZA), SE NOVO USA POST (CRIA)
+      const url    = editandoId ? '/api/amostras/' + editandoId : '/api/amostras';
+      const method = editandoId ? 'PATCH' : 'POST';
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields) });
+      if (res.ok) {
+        document.getElementById('status-amostra').textContent = 'Salvo com sucesso!';
+        await carregarAmostras();
+        setTimeout(() => fecharFormulario(), 1000);
+      } else {
+        const err = await res.json();
+        document.getElementById('status-amostra').textContent = 'Erro: ' + JSON.stringify(err);
+      }
+    }
+
+    //BUSCA OS DADOS DE UM CLIENTE E PREENCHE O FORMULARIO PARA EDICAO
+    async function editarCliente(id) {
+      editandoId = id;
+      const data = await fetch('/api/clientes/' + id).then(r => r.json());
+      document.getElementById('c-id').value   = data.fields['ID Cliente']   || '';
+      document.getElementById('c-nome').value = data.fields['Nome Cliente'] || '';
+      document.getElementById('titulo-cliente').textContent = 'Editar Cliente';
+      document.getElementById('form-cliente').style.display = 'block';
+      document.getElementById('hr-form').style.display = 'block';
+      document.getElementById('form-cliente').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    //SALVA UM CLIENTE: POST PARA NOVO, PATCH PARA EDITAR
+    async function salvarCliente() {
+      const idCliente = document.getElementById('c-id').value.trim();
+      if (!idCliente) { document.getElementById('status-cliente').textContent = 'ID Cliente e obrigatorio.'; return; }
+      const fields = { 'ID Cliente': idCliente };
+      const nome = document.getElementById('c-nome').value.trim(); if (nome) fields['Nome Cliente'] = nome;
+      const url    = editandoId ? '/api/clientes/' + editandoId : '/api/clientes';
+      const method = editandoId ? 'PATCH' : 'POST';
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields) });
+      if (res.ok) {
+        document.getElementById('status-cliente').textContent = 'Salvo com sucesso!';
+        await carregarClientes();
+        setTimeout(() => fecharFormulario(), 1000);
+      } else {
+        const err = await res.json();
+        document.getElementById('status-cliente').textContent = 'Erro: ' + JSON.stringify(err);
+      }
+    }
+
+    //BUSCA OS DADOS DE UM ENSAIO E PREENCHE O FORMULARIO PARA EDICAO
+    async function editarEnsaio(id) {
+      editandoId = id;
+      const data = await fetch('/api/ensaios/' + id).then(r => r.json());
+      document.getElementById('e-id').value = data.fields['ID Ensaio'] || '';
+      document.getElementById('titulo-ensaio').textContent = 'Editar Ensaio';
+      document.getElementById('form-ensaio').style.display = 'block';
+      document.getElementById('hr-form').style.display = 'block';
+      document.getElementById('form-ensaio').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    //SALVA UM ENSAIO: POST PARA NOVO, PATCH PARA EDITAR
+    async function salvarEnsaio() {
+      const idEnsaio = document.getElementById('e-id').value.trim();
+      if (!idEnsaio) { document.getElementById('status-ensaio').textContent = 'ID Ensaio e obrigatorio.'; return; }
+      const fields = { 'ID Ensaio': idEnsaio };
+      const url    = editandoId ? '/api/ensaios/' + editandoId : '/api/ensaios';
+      const method = editandoId ? 'PATCH' : 'POST';
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields) });
+      if (res.ok) {
+        document.getElementById('status-ensaio').textContent = 'Salvo com sucesso!';
+        await carregarEnsaios();
+        setTimeout(() => fecharFormulario(), 1000);
+      } else {
+        const err = await res.json();
+        document.getElementById('status-ensaio').textContent = 'Erro: ' + JSON.stringify(err);
+      }
+    }
+
+    //DELETA UM REGISTRO: PEDE CONFIRMACAO ANTES DE ENVIAR O DELETE PARA O SERVIDOR
+    async function deletar(tipo, id) {
+      if (!confirm('Tem certeza que deseja deletar?')) return;
+      const res = await fetch('/api/' + tipo + '/' + id, { method: 'DELETE' });
+      if (res.ok) {
+        if (tipo === 'amostras') await carregarAmostras();
+        if (tipo === 'clientes') await carregarClientes();
+        if (tipo === 'ensaios')  await carregarEnsaios();
+      } else {
+        alert('Erro ao deletar.');
+      }
+    }
+
+    //INICIA A APLICACAO AO CARREGAR A PAGINA
+    init();
+  </script>
+</body>
+</html>
