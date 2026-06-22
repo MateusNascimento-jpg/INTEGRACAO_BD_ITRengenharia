@@ -1,14 +1,13 @@
 # ITR - Sistema de Gestao de Amostras
 
-Sistema web para gerenciamento de amostras de laboratorio da **ITR Engenharia**, integrado a API do software de banco de dados e tabelas **Airtable**.
+Primeira versão do sistema web para gerenciamento de amostras de laboratorio da **ITR Engenharia** (verificação do fluxo de dados) 
 
 ---
 
 ## Funcionalidades
 - CRUD completo de **Amostras**, **Clientes** e **Ensaios**
-- Campos de selecao carregados dinamicamente do Airtable
+- Campos de selecao carregados dinamicamente do Airtable (Software utilizado pela emrpresa) 
 - Busca em tempo real nas tabelas
-- Token de autenticacao protegido no servidor
 
 ---
 
